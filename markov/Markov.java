@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Markov {
 	public static int TAILLE_FICHIER;
@@ -14,13 +15,41 @@ public class Markov {
 	public ArrayList<String> SuppressionDoublons;
 	public Markov(){
 		
-		MatriceT = new HashMap();
+		MatriceT = new HashMap<String, HashMap<String,Integer>>();
 		SuppressionDoublons = new ArrayList<String>();
 	}
 	
-	public int getNbOccurence(String mot){
+	
+	private void remplirMatrice() {
+		
+		Iterator<String> it = SuppressionDoublons.iterator();
+		
+		while (it.hasNext()) {
+		       String mot1 = it.next();
+		  //     System.out.println(" Je traite maintenant "+mot1);
+		       HashMap<String, Integer> Occurences;
+		       Occurences = new HashMap<String,Integer>();
+		       Iterator<String> it2 = SuppressionDoublons.iterator();
+		       if(!mot1.equals("."))
+		       while (it2.hasNext()) {
+		    	   
+		    	   String mot2 = it2.next();
+		    	//   System.out.println("Je traite le couple "+mot1+"  "+mot2);
+		    	   Occurences.put(mot2, getNbOccurenceSuite(mot1, mot2));
+		    	  	   
+		    	   
+		       }
+		       MatriceT.put(mot1, Occurences);
+		 
+		}
+		
+		
+	}
+	
+	
+/*	public int getNbOccurence(String mot){
 		int cmpt = 0;
-		for(int i=0;i<res.length;i++){
+		for(int i=0;i<res.length;iq++){
 			if(res[i].equals(mot))
 				cmpt++;
 			
@@ -29,7 +58,7 @@ public class Markov {
 		return cmpt;
 		
 		
-	}
+	}*/
 	
 	//public String getDernierMotFichier(){
 	//	return res[res.length-1];
@@ -79,6 +108,7 @@ public class Markov {
 		}
 		
 		br.close();
+		SuppressionDoublons.add(".");
 		res[0] = ".";
 		res[TAILLE_FICHIER+1] = ".";
 		System.out.println("Remplissage tableau fichier Ok");
@@ -97,6 +127,9 @@ public static void main(String[] args){
 	Markov m = new Markov();
 	try {
 		m.charger_fichier("Beyonce.txt.traite.txt");
+		m.remplirMatrice();
+	//	System.out.println(m.MatriceT.get("loves").get("me"));
+	//	System.out.println(m.MatriceT.get("they").containsKey("didn"));
 		//System.out.println(m.getNbOccurence("me"));
 		//System.out.println(res[res.length-1]);
 	} catch (IOException e) {
@@ -105,6 +138,8 @@ public static void main(String[] args){
 	}
 	
 }
+
+
 
 
 
