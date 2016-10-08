@@ -11,70 +11,82 @@ import java.util.Iterator;
 public class Markov {
 	public static int TAILLE_FICHIER;
 	public static String res[];
-	public HashMap<String, HashMap<String,Integer>> MatriceT;
-	public ArrayList<String> SuppressionDoublons;
+	public HashMap<String, HashMap<String,HashMap<String,Integer>>> MatriceT;
+//	public ArrayList<String> SuppressionDoublons;
 	public Markov(){
 		
-		MatriceT = new HashMap<String, HashMap<String,Integer>>();
-		SuppressionDoublons = new ArrayList<String>();
+		MatriceT = new HashMap<String, HashMap<String,HashMap<String,Integer>>>();
+	//	SuppressionDoublons = new ArrayList<String>();
 	}
 	
 	
 	private void remplirMatrice() {
 		
-		Iterator<String> it = SuppressionDoublons.iterator();
+		HashMap<String, HashMap<String,Integer>> Occurences;
+		HashMap<String, Integer> Occurences2;
 		
-		while (it.hasNext()) {
-		       String mot1 = it.next();
-		  //     System.out.println(" Je traite maintenant "+mot1);
-		       HashMap<String, Integer> Occurences;
-		       Occurences = new HashMap<String,Integer>();
-		       Iterator<String> it2 = SuppressionDoublons.iterator();
-		       if(!mot1.equals("."))
-		       while (it2.hasNext()) {
-		    	   
-		    	   String mot2 = it2.next();
-		    	//   System.out.println("Je traite le couple "+mot1+"  "+mot2);
-		    	   Occurences.put(mot2, getNbOccurenceSuite(mot1, mot2));
-		    	  	   
-		    	   
-		       }
-		       MatriceT.put(mot1, Occurences);
-		 
-		}
-		
-		
-	}
-	
-	
-/*	public int getNbOccurence(String mot){
-		int cmpt = 0;
-		for(int i=0;i<res.length;iq++){
-			if(res[i].equals(mot))
-				cmpt++;
+		String mot1,mot2,mot3;
+		for (int i = 0; i < res.length-2; i++) {
+			mot1 = res[i];
+			mot2 = res[i+1];
+			mot3 = res[i+2];
+		//	System.out.println("Je traite le triplet "+mot1+"  "+mot2+" "+mot3);
+			Occurences = new HashMap<String,HashMap<String,Integer>>();
+			Occurences2 = new HashMap<String,Integer>();
 			
-		}
-		
-		return cmpt;
-		
-		
-	}*/
-	
-	//public String getDernierMotFichier(){
-	//	return res[res.length-1];
-	//}
-	public int getNbOccurenceSuite(String mot1, String mot2){
-		int cmpt = 0;
-		for(int i=0;i<res.length;i++){
-			if(res[i].equals(mot1)){
-				if(res[i+1].equals(mot2)){
-					cmpt++;
+			if(MatriceT.containsKey(mot1)){
+			//	System.out.println("Existe déja dans la grande"); 
+				if(MatriceT.get(mot1).containsKey(mot2)){
+				//	System.out.println("Existe déja dans la moyenne"); 
+					if(MatriceT.get(mot1).get(mot2).containsKey(mot3)){
+						
+						MatriceT.get(mot1).get(mot2).put(mot3,MatriceT.get(mot1).get(mot2).get(mot3)+1);
+					//	System.out.println("Existe déja dans la petite, j'incrémente, ca devient : "+MatriceT.get(mot1).get(mot2).get(mot3)); 
+					}else{
+					//	System.out.println("Existe pas dans la petite"); 
+						MatriceT.get(mot1).get(mot2).put(mot3, 1);
+								 
+					//	System.out.println("J'ai dans MatriceT :"+mot1+" "+mot2+" "+mot3+"  "+MatriceT.get(mot1).get(mot2).get(mot3));
+					}
+					
+				}else{
+				//	System.out.println("Existe pas dans la moyenne"); 
+					Occurences2.put(mot3, 1);
+					MatriceT.get(mot1).put(mot2, Occurences2);
+				//	System.out.println("J'ai dans MatriceT :"+mot1+" "+mot2+" "+mot3+"  "+MatriceT.get(mot1).get(mot2).get(mot3));
 				}
+			}else{
+			//	System.out.println("Existe pas dans la grande"); 
+				Occurences2.put(mot3, 1);
+				Occurences.put(mot2, Occurences2);	 
+				MatriceT.put(mot1, Occurences);
+			//	System.out.println("J'ai dans MatriceT :"+mot1+" "+mot2+" "+mot3+"  "+MatriceT.get(mot1).get(mot2).get(mot3));
+				
 			}
+					
 			
 		}
-		return cmpt;
+			
+		
 	}
+	
+	
+	
+	public float getProba(String mot1, String mot2, String mot3){
+		int Sommedesoccurences=0;
+		if(!MatriceT.get(mot1).containsKey(mot2))return 0;
+		if(!MatriceT.get(mot1).get(mot2).containsKey(mot3))return 0;
+		float ProbaTrigrammes = 0;
+		for (String mapKey : MatriceT.get(mot1).get(mot2).keySet()) {
+			// utilise ici hashMap.get(mapKey) pour accéder aux valeurs
+			Sommedesoccurences += MatriceT.get(mot1).get(mot2).get(mapKey);
+		}
+		System.out.println(" Il y a "+MatriceT.get(mot1).get(mot2).get(mot3)+" occurences de "+mot1+" "+mot2+" "+mot3);
+		System.out.println(" Il y a en tout "+Sommedesoccurences+" occurences de "+mot1+" "+mot2+" autrechose ");
+		ProbaTrigrammes = (float)MatriceT.get(mot1).get(mot2).get(mot3)/(float)Sommedesoccurences;
+		return ProbaTrigrammes;
+	}
+	
 	public String[] charger_fichier(String dico) throws IOException{
 		
 		BufferedReader br = null;
@@ -100,15 +112,15 @@ public class Markov {
 		String ligne;
 		int cmpt = 1;
 		while((ligne = br.readLine()) != null){
-			if(!SuppressionDoublons.contains(ligne))
-				SuppressionDoublons.add(ligne);
+			//if(!SuppressionDoublons.contains(ligne))
+		//		SuppressionDoublons.add(ligne);
 				res[cmpt] = ligne;
 				cmpt++;
 					
 		}
 		
 		br.close();
-		SuppressionDoublons.add(".");
+	//	SuppressionDoublons.add(".");
 		res[0] = ".";
 		res[TAILLE_FICHIER+1] = ".";
 		System.out.println("Remplissage tableau fichier Ok");
@@ -118,19 +130,18 @@ public class Markov {
 		
 		
 	}
-	private void afficherliste() {
-		// TODO Auto-generated method stub
-		System.out.println(SuppressionDoublons.toString());
-	}
 
 public static void main(String[] args){
 	Markov m = new Markov();
 	try {
 		m.charger_fichier("Beyonce.txt.traite.txt");
 		m.remplirMatrice();
+		System.out.println(m.MatriceT.get("i").containsKey("want"));
+		//m.MatriceT.get("i").get("want").get("to");
+		System.out.println("Proba P(asked / oh, i) = "+m.getProba("i", "asked", "you"));
 	//	System.out.println(m.MatriceT.get("loves").get("me"));
 	//	System.out.println(m.MatriceT.get("they").containsKey("didn"));
-		//System.out.println(m.getNbOccurence("me"));
+	//	System.out.println(m.getNbOccurenceSuite("remember", "those", "days"));
 		//System.out.println(res[res.length-1]);
 	} catch (IOException e) {
 		// TODO Auto-generated catch block
